@@ -64,12 +64,12 @@ static const char unknown_str[] = "n/a";
  * wifi_essid          WiFi ESSID                      interface name (wlan0)
  */
 static const struct arg args[] = {
-	/* function     format             argument */
-	{ cpu_perc,     "^c#e5c07b^  %s%% ",       NULL },
-	{ ram_perc,     "^c#61afef^ ﲯ %s%% ",       NULL },
-	{ disk_perc,    "^c#abb2bf^  %s%% ",       "/" },
-	{ wifi_perc,    "^c#56b6c2^ 直 %s%% ",      "wlp4s0" },
-	{ run_command,  "^c#c678dd^ 墳 %s ",        "~/getvolume.sh" },
-	{ battery_perc, "^c#98c379^  %s%% ",       "BAT0" },
-	{ datetime,     "^c#56b6c2^  %s",             "%F %T" },
+	/* function    format                 argument */
+	{ cpu_perc,    "^c#e5c07b^  %s%% ",  NULL },
+	{ ram_perc,    "^c#61afef^ ﲯ %s%% ", NULL },
+	{ disk_perc,   "^c#abb2bf^  %s%% ",  "/" },
+	{ wifi_perc,   "^c#56b6c2^ 直 %s%% ", "wlp4s0" },
+	{ run_command, "^c#c678dd^ 墳 %s ",   "~/getvolume.sh" },
+	{ run_command, "^c#98c379^ %s ",      "~/getbattery.sh BAT0" },
+	{ datetime,    "^c#56b6c2^  %s",     "%F %T" },
 };
