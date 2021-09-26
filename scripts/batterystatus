@@ -2,6 +2,9 @@
 
 set -euo pipefail
 
+readonly CHARGING_ICON=""
+readonly CAPACITY_ICONS=(          )
+
 function main() {
     if [ "$#" -ne 1 ]; then
         echo Usage: ./getbattery.sh BATTERY_NAME >&2
@@ -21,37 +24,30 @@ function main() {
     return 0
 }
 
-function getIcon() {
+################################################################################
+# Get an appropriate battery icon for a given status and capacity.
+# Globals:
+#   CHARGING_ICON
+#   CAPACITY_ICONS
+# Arguments:
+#   Battery status - i.e. "Charging"/"Not charging"/"Full".
+#   Battery capacity percentage.
+# Outputs:
+#   Writes battery icon to stdout.
+################################################################################
+function get_icon() {
     local status=$1
     local capacity=$2
-    local icon
 
     if [ "$status" == "Charging" ]; then
-        icon=""
-    elif [ "$capacity" -lt 10 ]; then
-        icon=""
-    elif [ "$capacity" -lt 20 ]; then
-        icon=""
-    elif [ "$capacity" -lt 30 ]; then
-        icon=""
-    elif [ "$capacity" -lt 40 ]; then
-        icon=""
-    elif [ "$capacity" -lt 50 ]; then
-        icon=""
-    elif [ "$capacity" -lt 60 ]; then
-        icon=""
-    elif [ "$capacity" -lt 70 ]; then
-        icon=""
-    elif [ "$capacity" -lt 80 ]; then
-        icon=""
-    elif [ "$capacity" -lt 90 ]; then
-        icon=""
-    else # $capacity <= 100
-        icon=""
+        echo "$CHARGING_ICON"
+        return 0
     fi
 
-    echo "$icon"
+    local index=$(( "$capacity" / 10 ))
+    local icon="${CAPACITY_ICONS[$index]}"
 
+    echo "$icon"
     return 0
 }
 
