@@ -10,6 +10,10 @@ set -euo pipefail
 readonly CHARGING_ICON=""
 readonly CAPACITY_ICONS=(          )
 
+# Use absolute paths to avoid environt variable attacks
+alias echo=/usr/bin/echo
+alias cat=/usr/bin/cat
+
 function main() {
     if [ "$#" -ne 1 ]; then
         echo Usage: ./getbattery.sh BATTERY_NAME >&2
