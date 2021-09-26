@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+#
+# Print battery status indicator - i.e:  90%.
+# Intended to be used by status bars such as slstatus.
+#
+# Author: Mathias Estrup
 
 set -euo pipefail
 
