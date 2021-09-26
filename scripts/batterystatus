@@ -22,16 +22,26 @@ function main() {
 
     local battery_name=$1
 
+    # TODO: Input validation/sanitization of battery_name
+
     local path="/sys/class/power_supply/$battery_name"
+
+    # TODO: Validate that path exists and is a directory
 
     local status
     status=$(cat "$path/status")
 
+    # TODO: Input validation/sanitization of status
+
     local capacity
     capacity=$(cat "$path/capacity")
 
+    # TODO: Input validation/sanitization of capacity (i.e. 0 <= capacity <= 100)
+
     local icon
     icon=$(get_icon "$status" "$capacity")
+
+    # TODO: Validate icon
 
     echo "$icon $capacity%"
     return 0
@@ -39,6 +49,8 @@ function main() {
 
 ################################################################################
 # Get an appropriate battery icon for a given status and capacity.
+# Does NOT validate/sanitize arguments and as such, they should be
+# validated/sanitized before calling this function.
 # Globals:
 #   CHARGING_ICON
 #   CAPACITY_ICONS
