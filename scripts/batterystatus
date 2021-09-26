@@ -7,50 +7,138 @@
 
 set -euo pipefail
 
+readonly BATTERY_NAME_REGEX="^[a-zA-Z0-9]{1,16}$"
+readonly CAPACITY_REGEX="^[0-9]{1,3}$"
+
+readonly STATUS_CHARGING="charging"
+readonly STATUS_NOT_CHARGING="not charging"
+
 readonly CHARGING_ICON=""
 readonly CAPACITY_ICONS=(          )
 
-# Use absolute paths to avoid environt variable attacks
-alias echo=/usr/bin/echo
+# Use absolute paths to external binaries to avoid environment variable attacks
 alias cat=/usr/bin/cat
+alias echo=/usr/bin/echo
+alias head=/usr/bin/head
+alias tr=/usr/bin/tr
+alias xargs=/usr/bin/xargs
 
 function main() {
     if [ "$#" -ne 1 ]; then
-        echo Usage: ./getbattery.sh BATTERY_NAME >&2
-        return 1
+        err "Usage: ./getbattery.sh BATTERY_NAME"
     fi
 
     local battery_name=$1
-
-    # TODO: Input validation/sanitization of battery_name
+    validate_battery_name "$battery_name"
 
     local path="/sys/class/power_supply/$battery_name"
 
-    # TODO: Validate that path exists and is a directory
-
     local status
-    status=$(cat "$path/status")
-
-    # TODO: Input validation/sanitization of status
+    status=$(get_status "$path/status")
 
     local capacity
-    capacity=$(cat "$path/capacity")
-
-    # TODO: Input validation/sanitization of capacity (i.e. 0 <= capacity <= 100)
+    capacity=$(get_capacity "$path/capacity")
 
     local icon
     icon=$(get_icon "$status" "$capacity")
-
-    # TODO: Validate icon
 
     echo "$icon $capacity%"
     return 0
 }
 
 ################################################################################
+# Print given error message(s) and exit.
+#
+# Arguments:
+#   One or more messages or arguments to print.
+# Outputs:
+#   Writes error messages/arguments to stderr.
+# Returns:
+#   Exits with 1.
+################################################################################
+function err() {
+    echo "$@" >&2
+    exit 1
+}
+
+################################################################################
+# Validate a given battery name.
+#
+# Globals:
+#   BATTERY_NAME_REGEX
+# Arguments:
+#   Battery name - i.e. "BAT0".
+# Outputs:
+#   Writes error message to stderr if battery name is invalid.
+# Exits:
+#   With 1 if validation fails.
+################################################################################
+function validate_battery_name() {
+    local battery_name=$1
+
+    if [[ ! "$battery_name" =~ $BATTERY_NAME_REGEX ]]; then
+        err "Invalid battery name: \"$battery_name\"." \
+            "Must consist of 1-16 alphanumeric characters."
+    fi
+    return 0
+}
+
+################################################################################
+# Gets current battery status.
+#
+# Automatically validates and sanitizes the status.
+#
+# Arguments:
+#   Path to battery status file.
+# Outputs:
+#   Writes battery status (i.e. "charging"/"not charging") to stdout.
+# Exits:
+#   With 1 if given path does not point to a regular file.
+################################################################################
+function get_status() {
+    local file=$1
+
+    validate_file "$file" "battery status"
+
+    local status
+    status=$(head -c 32 "$file")
+    status=$(sanitize_status "$status")
+
+    echo "$status"
+    return 0
+}
+
+################################################################################
+# Gets current battery capacity.
+#
+# Automatically sanitizes the capacity.
+#
+# Arguments:
+#   Path to battery capacity file.
+# Outputs:
+#   Writes battery capacity in percent (i.e. "85") to stdout.
+# Exits:
+#   With 1 if given path does not point to a regular file.
+################################################################################
+function get_capacity() {
+    local file=$1
+
+    validate_file "$file" "battery capacity"
+
+    local capacity
+    capacity=$(head -c 3 "$file")
+    capacity=$(sanitize_capacity "$capacity")
+
+    echo "$capacity"
+    return 0
+}
+
+################################################################################
 # Get an appropriate battery icon for a given status and capacity.
+#
 # Does NOT validate/sanitize arguments and as such, they should be
 # validated/sanitized before calling this function.
+#
 # Globals:
 #   CHARGING_ICON
 #   CAPACITY_ICONS
@@ -64,7 +152,7 @@ function get_icon() {
     local status=$1
     local capacity=$2
 
-    if [ "$status" == "Charging" ]; then
+    if [ "$status" == "charging" ]; then
         echo "$CHARGING_ICON"
         return 0
     fi
@@ -73,6 +161,117 @@ function get_icon() {
     local icon="${CAPACITY_ICONS[$index]}"
 
     echo "$icon"
+    return 0
+}
+
+################################################################################
+# Validates that a given path is a regular file.
+#
+# Arguments:
+#   Path to validate.
+#   Type of file as a string - i.e. "battery status". Used solely for error
+#       message output.
+# Exits:
+#   With 1 if given path is not a regular file.
+################################################################################
+function validate_file() {
+    local file=$1
+    local type=$2
+
+    if [ ! -f "$file" ]; then
+        err "Invalid $type file: $file". \
+            "It either does not exist or is not a regular file."
+    fi
+    return 0
+}
+
+################################################################################
+# Sanitize a given battery status.
+#
+# Does a case-insensitive comparison of given status with the string "charging"
+# and assumes outputs "charging" if the comparison succeeds and "not charging"
+# if it fails. As such, assumes that anything other than "charging" means that
+# the battery is not charging.
+#
+# Globals:
+#   STATUS_CHARGING
+#   STATUS_NOT_CHARGING
+# Arguments:
+#   Battery status - i.e. "Charging"/"Not charging"/"Full".
+# Outputs:
+#   Writes "charging" or "not charging" to stdout.
+################################################################################
+function sanitize_status() {
+    local status=$1
+    status=$(trim "$status")
+    status=$(tolower "$status")
+
+    if [ "$status" != "$STATUS_CHARGING" ]; then
+        status="$STATUS_NOT_CHARGING"
+    fi
+
+    echo "$status"
+    return 0
+}
+
+################################################################################
+# Validate and sanitize a given battery capacity.
+#
+# Whitespace is trimmed and capacity is validated to be an int between 0 and
+# 100 inclusive.
+#
+# Globals:
+#   CAPACITY_REGEX
+# Arguments:
+#   Battery capacity.
+# Outputs:
+#   Writes sanitized capacity to stdout if validation succeeds.
+#   Writes error message to stderr if validation fails.
+# Exits:
+#   With 1 if validation fails.
+################################################################################
+function sanitize_capacity() {
+    local capacity=$1
+    capacity=$(trim "$capacity")
+
+    if [[ ! "$capacity" =~ $CAPACITY_REGEX ]] || [ "$capacity" -lt 0 ] \
+        || [ "$capacity" -gt 100 ]; then
+        err "Invalid battery capacity: \"$capacity\"." \
+            "Must be a percentage (a number between 0 and 100 inclusive)."
+    fi
+
+    echo "$capacity"
+    return 0
+}
+
+################################################################################
+# Trim whitespace from given strings.
+#
+# Leading and trailing whitespace is trimmed. Additionally, internal whitespace
+# is trimmed to single spaces - i.e. "some  string" is trimmed to "some string".
+# If multple strings are given, they will be concatenated into one string before
+# trimming.
+#
+# Arguments:
+#   One or more strings to trim.
+# Outputs:
+#   Writes trimmed string to stdout.
+################################################################################
+function trim() {
+    echo "$@" | xargs
+    return 0
+}
+
+################################################################################
+# Convert a given string to lower case.
+#
+# Arguments:
+#   One or more strings to convert to lower case.
+# Outputs:
+#   Writes lower case strings to stdout.
+################################################################################
+function tolower() {
+    echo "$@" | tr "[:upper:]" "[:lower:]"
     return 0
 }
 
