@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+function main() {
+    if [ "$#" -ne 1 ]; then
+        echo Usage: ./getvolume.sh DEVICE
+        return 1
+    fi
+
+    device=$1
+
+    arr=( $(amixer sget "$device" | awk -F "[][]" '/Left:/ { print $4,$2 }') )
+    status=${arr[0]}
+    level=${arr[1]}
+
+    [ "$status" == "on" ] && echo "$level" || echo "off"
+
+    return 0
+}
+
+main $@

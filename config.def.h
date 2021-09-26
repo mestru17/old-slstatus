@@ -69,7 +69,7 @@ static const struct arg args[] = {
 	{ ram_perc,    "^c#61afef^ ﲯ %s%% ", NULL },
 	{ disk_perc,   "^c#abb2bf^  %s%% ",  "/" },
 	{ wifi_perc,   "^c#56b6c2^ 直 %s%% ", "wlp4s0" },
-	{ run_command, "^c#c678dd^ 墳 %s ",   "~/getvolume.sh Master" },
-	{ run_command, "^c#98c379^ %s ",      "~/getbattery.sh BAT0" },
+	{ run_command, "^c#c678dd^ 墳 %s ",   "~/volumestatus Master" },
+	{ run_command, "^c#98c379^ %s ",      "~/batterystatus BAT0" },
 	{ datetime,    "^c#56b6c2^  %s",     "%F %T" },
 };

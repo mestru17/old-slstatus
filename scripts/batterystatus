@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+function main() {
+    if [ "$#" -ne 1 ]; then
+        echo Usage: ./getbattery.sh BATTERY_NAME
+        return 1
+    fi
+
+    batteryName=$1
+
+    path="/sys/class/power_supply/$batteryName"
+    status=$(cat "$path/status")
+    capacity=$(cat "$path/capacity")
+
+    icon=$(getIcon "$status" "$capacity")
+
+    echo "$icon $capacity%"
+
+    return 0
+}
+
+function getIcon() {
+    local status=$1
+    local capacity=$2
+    local icon
+
+    if [ "$status" == "Charging" ]; then
+        icon=""
+    elif [ "$capacity" -lt 10 ]; then
+        icon=""
+    elif [ "$capacity" -lt 20 ]; then
+        icon=""
+    elif [ "$capacity" -lt 30 ]; then
+        icon=""
+    elif [ "$capacity" -lt 40 ]; then
+        icon=""
+    elif [ "$capacity" -lt 50 ]; then
+        icon=""
+    elif [ "$capacity" -lt 60 ]; then
+        icon=""
+    elif [ "$capacity" -lt 70 ]; then
+        icon=""
+    elif [ "$capacity" -lt 80 ]; then
+        icon=""
+    elif [ "$capacity" -lt 90 ]; then
+        icon=""
+    else # $capacity <= 100
+        icon=""
+    fi
+
+    echo "$icon"
+
+    return 0
+}
+
+main $@
