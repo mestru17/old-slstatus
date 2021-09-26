@@ -16,16 +16,20 @@ function main() {
         return 1
     fi
 
-    local batteryName=$1
+    local battery_name=$1
 
-    local path="/sys/class/power_supply/$batteryName"
-    local status=$(cat "$path/status")
-    local capacity=$(cat "$path/capacity")
+    local path="/sys/class/power_supply/$battery_name"
 
-    local icon=$(getIcon "$status" "$capacity")
+    local status
+    status=$(cat "$path/status")
+
+    local capacity
+    capacity=$(cat "$path/capacity")
+
+    local icon
+    icon=$(get_icon "$status" "$capacity")
 
     echo "$icon $capacity%"
-
     return 0
 }
 
@@ -56,4 +60,4 @@ function get_icon() {
     return 0
 }
 
-main $@
+main "$@"
