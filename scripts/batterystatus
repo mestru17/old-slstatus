@@ -8,13 +8,13 @@ function main() {
         return 1
     fi
 
-    batteryName=$1
+    local batteryName=$1
 
-    path="/sys/class/power_supply/$batteryName"
-    status=$(cat "$path/status")
-    capacity=$(cat "$path/capacity")
+    local path="/sys/class/power_supply/$batteryName"
+    local status=$(cat "$path/status")
+    local capacity=$(cat "$path/capacity")
 
-    icon=$(getIcon "$status" "$capacity")
+    local icon=$(getIcon "$status" "$capacity")
 
     echo "$icon $capacity%"
 
