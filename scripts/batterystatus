@@ -43,7 +43,6 @@ function main() {
     icon=$(get_icon "$status" "$capacity")
 
     echo "$icon $capacity%"
-    return 0
 }
 
 ################################################################################
@@ -80,7 +79,6 @@ function validate_battery_name() {
         err "Invalid battery name: \"$battery_name\"." \
             "Must consist of 1-16 alphanumeric characters."
     fi
-    return 0
 }
 
 ################################################################################
@@ -105,7 +103,6 @@ function get_status() {
     status=$(sanitize_status "$status")
 
     echo "$status"
-    return 0
 }
 
 ################################################################################
@@ -130,7 +127,6 @@ function get_capacity() {
     capacity=$(sanitize_capacity "$capacity")
 
     echo "$capacity"
-    return 0
 }
 
 ################################################################################
@@ -154,14 +150,13 @@ function get_icon() {
 
     if [ "$status" == "charging" ]; then
         echo "$CHARGING_ICON"
-        return 0
+        return
     fi
 
     local index=$(( "$capacity" / 10 ))
     local icon="${CAPACITY_ICONS[$index]}"
 
     echo "$icon"
-    return 0
 }
 
 ################################################################################
@@ -182,7 +177,6 @@ function validate_file() {
         err "Invalid $type file: $file". \
             "It either does not exist or is not a regular file."
     fi
-    return 0
 }
 
 ################################################################################
@@ -211,7 +205,6 @@ function sanitize_status() {
     fi
 
     echo "$status"
-    return 0
 }
 
 ################################################################################
@@ -241,7 +234,6 @@ function sanitize_capacity() {
     fi
 
     echo "$capacity"
-    return 0
 }
 
 ################################################################################
@@ -259,7 +251,6 @@ function sanitize_capacity() {
 ################################################################################
 function trim() {
     echo "$@" | xargs
-    return 0
 }
 
 ################################################################################
@@ -272,7 +263,6 @@ function trim() {
 ################################################################################
 function tolower() {
     echo "$@" | tr "[:upper:]" "[:lower:]"
-    return 0
 }
 
 main "$@"
